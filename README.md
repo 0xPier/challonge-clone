@@ -14,189 +14,104 @@ A modern, full-stack tournament management platform similar to Challonge, built 
 
 ### 🚧 In Progress
 - Tournament creation and management
-- Bracket generation algorithms
-- Real-time match updates
-- League system implementation
+# Challonge Clone
 
-### 📋 Planned Features
-- Multiple tournament formats (Single/Double Elimination, Round Robin, Swiss)
-- User registration for tournaments
-- Match reporting and dispute system
-- Real-time notifications
-- Admin panel
-- Mobile-responsive design
+A full-stack tournament management platform (Challonge-inspired) built with Node.js, Express, MongoDB and a React + TypeScript frontend.
 
-## Tech Stack
+Live repo: https://github.com/0xPier/challonge-clone
 
-### Backend
-- **Node.js** - Runtime environment
-- **Express.js** - Web framework
-- **MongoDB** - Database
-- **Mongoose** - ODM
-- **JWT** - Authentication
-- **Passport.js** - OAuth strategy
-- **Socket.IO** - Real-time communication
+## Quickstart
 
-### Frontend
-- **React 18** - UI library
-- **TypeScript** - Type safety
-- **Redux Toolkit** - State management
-- **React Router** - Client-side routing
-- **Tailwind CSS** - Styling
-- **Axios** - HTTP client
-- **React Hot Toast** - Notifications
-
-## Getting Started
-
-### Prerequisites
-- Node.js (v16 or higher)
-- MongoDB (v5 or higher)
+Prerequisites
+- Node.js v16+ (or newer)
+- MongoDB (local or cloud)
 - npm or yarn
 
-### Installation
+Clone and install
+```bash
+git clone https://github.com/0xPier/challonge-clone.git
+cd challonge-clone
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd challonge-clone
-   ```
+# Backend
+cd backend
+npm install
+cp .env.example .env
+# edit backend/.env with your values (MONGODB_URI, JWT_SECRET, GOOGLE creds, etc.)
 
-2. **Backend Setup**
-   ```bash
-   cd backend
-   npm install
-   cp .env.example .env
-   # Edit .env with your configuration
-   ```
+# Frontend (in a new terminal)
+cd ../frontend
+npm install
+```
 
-3. **Frontend Setup**
-   ```bash
-   cd ../frontend
-   npm install
-   ```
+Environment (example - edit values in `backend/.env`)
+```env
+NODE_ENV=development
+PORT=5000
+MONGODB_URI=mongodb://localhost:27017/challonge-clone
+JWT_SECRET=replace-with-a-secret
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+FRONTEND_URL=http://localhost:3000
+```
 
-4. **Environment Configuration**
+Running locally
+- Start MongoDB (if running locally): mongod
+- Start backend (from `backend/`):
+```bash
+npm run dev
+```
+- Start frontend (from `frontend/`):
+```bash
+npm start
+```
 
-   Update `backend/.env`:
-   ```env
-   NODE_ENV=development
-   PORT=5000
-   MONGODB_URI=mongodb://localhost:27017/challonge-clone
-   JWT_SECRET=your-super-secret-jwt-key-here
-   GOOGLE_CLIENT_ID=your-google-client-id
-   GOOGLE_CLIENT_SECRET=your-google-client-secret
-   FRONTEND_URL=http://localhost:3000
-   ```
+Frontend: http://localhost:3000
+Backend API base: http://localhost:5000/api
 
-   Update `frontend/.env` (if needed):
-   ```env
-   REACT_APP_API_URL=http://localhost:5000/api
-   ```
+## What this repository contains
 
-### Running the Application
+- backend/: Express server, models, routes, middleware and services
+- frontend/: React + TypeScript app, Redux store and components
+- memory-bank/: notes and project docs used during development
 
-1. **Start MongoDB** (if not already running)
-   ```bash
-   mongod
-   ```
-
-2. **Start Backend**
-   ```bash
-   cd backend
-   npm run dev
-   ```
-
-3. **Start Frontend**
-   ```bash
-   cd frontend
-   npm start
-   ```
-
-4. **Access the application**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:5000/api
-
-## Project Structure
-
+Project structure (top-level)
 ```
 challonge-clone/
-├── backend/
-│   ├── src/
-│   │   ├── controllers/     # Request handlers
-│   │   ├── models/         # Database models
-│   │   ├── routes/         # API routes
-│   │   ├── middleware/     # Custom middleware
-│   │   ├── services/       # Business logic
-│   │   ├── utils/          # Utilities
-│   │   └── server.js       # Application entry point
-│   ├── tests/              # Test files
-│   └── package.json
-├── frontend/
-│   ├── src/
-│   │   ├── components/     # React components
-│   │   ├── pages/         # Page components
-│   │   ├── hooks/         # Custom hooks
-│   │   ├── services/       # API services
-│   │   ├── store/         # Redux store
-│   │   ├── types/         # TypeScript types
-│   │   └── utils/         # Utilities
-│   ├── public/            # Static assets
-│   └── package.json
-└── docker-compose.yml     # Docker configuration
+├─ backend/
+├─ frontend/
+└─ memory-bank/
 ```
 
-## API Documentation
+## Development notes
 
-### Authentication Endpoints
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `GET /api/auth/google` - Google OAuth login
-- `GET /api/auth/me` - Get current user profile
+- Auth: JWT + Google OAuth (Passport)
+- DB: MongoDB with Mongoose models for User, Tournament, Match, League
+- Realtime: Socket.IO planned/partially implemented
+- Bracket generation: service logic under `backend/src/services`
 
-### Tournament Endpoints
-- `GET /api/tournaments` - Get all tournaments
-- `POST /api/tournaments` - Create tournament (Admin/Mod only)
-- `GET /api/tournaments/:id` - Get tournament details
-- `POST /api/tournaments/:id/register` - Register for tournament
-- `POST /api/tournaments/:id/start` - Start tournament
+## Available scripts
 
-### User Endpoints
-- `GET /api/users/profile/:id` - Get user profile
-- `GET /api/users/leaderboard` - Get leaderboard
-- `GET /api/users/me/tournaments` - Get user's tournaments
+Backend (from `backend/`)
+- `npm run dev` — start dev server with nodemon
+- `npm start` — production start
 
-## Development
-
-### Available Scripts
-
-**Backend:**
-- `npm run dev` - Start development server with nodemon
-- `npm start` - Start production server
-- `npm test` - Run tests
-
-**Frontend:**
-- `npm start` - Start development server
-- `npm run build` - Build for production
-- `npm test` - Run tests
-
-### Code Style
-- Backend: ESLint + Prettier
-- Frontend: ESLint + Prettier + TypeScript
+Frontend (from `frontend/`)
+- `npm start` — start dev server
+- `npm run build` — build for production
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+1. Fork
+2. Create branch: `git checkout -b feature/your-feature`
+3. Commit: `git commit -m "feat: add ..."`
+4. Push: `git push origin feature/your-feature`
+5. Open a PR
+
+Please open issues or PRs for bugs, features or improvements.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT — see `LICENSE`.
 
-## Acknowledgments
-
-- Inspired by [Challonge](https://challonge.com)
-- Built with modern web technologies
-- Thanks to the open-source community for amazing tools and libraries
+---
+If you want, I can add a short CONTRIBUTING.md, a license file, or a GitHub Actions CI workflow next. Tell me which and I'll add it and push the changes.
