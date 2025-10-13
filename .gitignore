@@ -1,0 +1,42 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Build artifacts
+dist/
+build/
+/frontend/build/
+/backend/build/
+
+# Env files
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# IDEs
+.vscode/
+.idea/
+
+# Misc
+coverage/
+*.tgz
+
+# Mac OS
+.DS_Store
+
+# Ignore compiled TS
+*.tsbuildinfo
+
+# Ignore frontend production build
+/frontend/static/
