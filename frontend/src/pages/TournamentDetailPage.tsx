@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { CalendarDays, Users, Tag, Settings2, Trophy, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { clearCurrentTournament, fetchTournament, registerForTournament } from '../store/slices/tournamentSlice';
 import TournamentCard from '../components/Tournament/TournamentCard';
+import BracketView from '../components/Tournament/BracketView';
 import toast from 'react-hot-toast';
 
 const TournamentDetailPage: React.FC = () => {
@@ -163,6 +164,21 @@ const TournamentDetailPage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Bracket section - show if tournament has started */}
+      {currentTournament.bracketData && currentTournament.bracketData.rounds && currentTournament.bracketData.rounds.length > 0 && (
+        <section className="card border-white/10 bg-indigo-950/80 p-8">
+          <BracketView
+            rounds={currentTournament.bracketData.rounds}
+            currentRound={currentTournament.bracketData.currentRound}
+            totalRounds={currentTournament.bracketData.totalRounds}
+            format={format}
+            onMatchClick={(match) => {
+              toast('Match details coming soon!', { icon: '🎮' });
+            }}
+          />
+        </section>
+      )}
 
       <section className="grid gap-8 lg:grid-cols-[2fr,1fr]">
         <div className="space-y-8">

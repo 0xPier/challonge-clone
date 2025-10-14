@@ -393,7 +393,7 @@ class BracketGenerator {
   }
 
   /**
-   * Update match result and advance winners
+   * Update match result and track winners/losers
    * @param {Object} tournament - Tournament document
    * @param {Object} match - Match document
    * @param {String} winnerId - ID of winning player
@@ -429,6 +429,21 @@ class BracketGenerator {
 
       // Update tournament stats
       tournament.stats.completedMatches += 1;
+
+      // Track winners and losers in tournament
+      if (!tournament.winners) tournament.winners = [];
+      if (!tournament.losers) tournament.losers = [];
+
+      // Add winner to winners list (if not already present)
+      if (!tournament.winners.some(w => w.toString() === winnerId.toString())) {
+        tournament.winners.push(winnerId);
+      }
+
+      // Find loser (the player who didn't win)
+      const loserId = match.players.find(p => p.user.toString() !== winnerId.toString())?.user;
+      if (loserId && !tournament.losers.some(l => l.toString() === loserId.toString())) {
+        tournament.losers.push(loserId);
+      }
 
       // Find next match for winner
       const nextMatches = await this.findNextMatches(tournament, match, winnerId);

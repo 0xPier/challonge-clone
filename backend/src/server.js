@@ -15,6 +15,7 @@ require('./utils/passport');
 const authRoutes = require('./routes/auth');
 const tournamentRoutes = require('./routes/tournaments');
 const userRoutes = require('./routes/users');
+const adminRoutes = require('./routes/admin');
 const { errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
@@ -97,6 +98,7 @@ app.set('io', io);
 app.use('/api/auth', authRoutes);
 app.use('/api/tournaments', tournamentRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

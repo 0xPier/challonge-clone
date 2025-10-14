@@ -153,10 +153,9 @@ router.get('/:id', async (req, res) => {
 
 // @route   POST /api/tournaments
 // @desc    Create a new tournament
-// @access  Private (Admin/Mod/Superuser only)
+// @access Private (Authenticated users can create, status will be pending-approval for non-admins)
 router.post('/',
   authenticate,
-  authorize('admin', 'moderator', 'superuser'),
   createTournamentValidation,
   async (req, res) => {
     try {
@@ -201,7 +200,7 @@ router.post('/',
         });
       }
 
-      // Create tournament
+      // Create tournament with pending approval status
       const tournament = new Tournament({
         name,
         description,
@@ -216,7 +215,8 @@ router.post('/',
         league,
         tags,
         visibility,
-        organizer: req.user._id
+        organizer: req.user._id,
+        status: req.user.role === 'admin' || req.user.role === 'superuser' ? 'approved' : 'pending-approval'
       });
 
       await tournament.save();

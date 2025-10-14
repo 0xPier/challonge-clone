@@ -17,6 +17,7 @@ import TournamentDetailPage from './pages/TournamentDetailPage';
 import CreateTournamentPage from './pages/CreateTournamentPage';
 import ProfilePage from './pages/ProfilePage';
 import LeaderboardPage from './pages/LeaderboardPage';
+import AdminDashboard from './pages/AdminDashboard';
 
 // Store
 import { loadUser, logout } from './store/slices/authSlice';
@@ -83,6 +84,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminDashboard />
               </ProtectedRoute>
             }
           />

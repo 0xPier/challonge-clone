@@ -25,7 +25,7 @@ const tournamentSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['draft', 'open', 'in-progress', 'completed', 'cancelled'],
+    enum: ['draft', 'pending-approval', 'approved', 'rejected', 'open', 'in-progress', 'completed', 'cancelled'],
     default: 'draft'
   },
   maxParticipants: {
@@ -143,6 +143,16 @@ const tournamentSchema = new mongoose.Schema({
     averageMatchDuration: { type: Number, default: 0 }, // in minutes
     totalViewers: { type: Number, default: 0 }
   },
+  
+  // Winners and losers tracking
+ winners: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  losers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
   // Media and attachments
   banner: {
     type: String,
