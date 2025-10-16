@@ -78,7 +78,7 @@ const authorizeTournamentOrganizer = async (req, res, next) => {
       });
     }
 
-    const tournamentId = req.params.tournamentId || req.body.tournamentId;
+    const tournamentId = req.params.id || req.params.tournamentId || req.body.tournamentId;
 
     if (!tournamentId) {
       return res.status(400).json({

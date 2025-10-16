@@ -210,13 +210,18 @@ router.post('/',
         startDate: start,
         endDate: endDate ? new Date(endDate) : null,
         registrationDeadline: registrationEnd,
-        settings,
-        rules,
+        settings: settings || {},
+        rules: rules || '',
         league,
-        tags,
-        visibility,
+        tags: tags || [],
+        visibility: visibility || 'public',
         organizer: req.user._id,
-        status: req.user.role === 'admin' || req.user.role === 'superuser' ? 'approved' : 'pending-approval'
+        status: req.user.role === 'admin' || req.user.role === 'superuser' ? 'open' : 'pending-approval',
+        bracketData: {
+          rounds: [],
+          currentRound: 1,
+          totalRounds: 0
+        }
       });
 
       await tournament.save();
@@ -226,11 +231,16 @@ router.post('/',
 
       // Populate the tournament for response
       await tournament.populate('organizer', 'displayName avatar');
-      await tournament.populate('league', 'name type');
+      if (league) {
+        await tournament.populate('league', 'name type');
+      }
+
+      // Convert to JSON to ensure virtuals are included
+      const tournamentResponse = tournament.toJSON();
 
       res.status(201).json({
         message: 'Tournament created successfully',
-        tournament
+        tournament: tournamentResponse
       });
 
     } catch (error) {

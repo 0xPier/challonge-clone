@@ -50,13 +50,15 @@ npm install
 Environment (example - edit values in `backend/.env`)
 ```env
 NODE_ENV=development
-PORT=5000
+PORT=5001
 MONGODB_URI=mongodb://localhost:27017/challonge-clone
 JWT_SECRET=replace-with-a-secret
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 FRONTEND_URL=http://localhost:3000
 ```
+
+**Note:** Port 5001 is used instead of 5000 because macOS Monterey and later use port 5000 for AirPlay Receiver by default.
 
 Running locally
 - Start MongoDB (if running locally): `mongod` or `brew services start mongodb-community`
@@ -74,7 +76,7 @@ npm start
 ```
 
 Frontend: http://localhost:3000
-Backend API base: http://localhost:5000/api
+Backend API base: http://localhost:5001/api
 
 **Default Admin Login:**
 - Email: `admin@challonge.local`

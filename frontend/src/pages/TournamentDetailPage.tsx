@@ -169,7 +169,26 @@ const TournamentDetailPage: React.FC = () => {
       {currentTournament.bracketData && currentTournament.bracketData.rounds && currentTournament.bracketData.rounds.length > 0 && (
         <section className="card border-white/10 bg-indigo-950/80 p-8">
           <BracketView
-            rounds={currentTournament.bracketData.rounds}
+            rounds={currentTournament.bracketData.rounds.map(round => ({
+              ...round,
+              matches: round.matches.map((match: any) => ({
+                matchId: match.matchId || match._id || `match-${match.matchNumber}`,
+                player1: typeof match.player1 === 'string' || !match.player1 ? undefined : {
+                  id: match.player1.id || match.player1._id || match.player1,
+                  displayName: match.player1.displayName || match.player1.username || 'Unknown',
+                  avatar: match.player1.avatar
+                },
+                player2: typeof match.player2 === 'string' || !match.player2 ? undefined : {
+                  id: match.player2.id || match.player2._id || match.player2,
+                  displayName: match.player2.displayName || match.player2.username || 'Unknown',
+                  avatar: match.player2.avatar
+                },
+                winner: match.winner,
+                status: match.status || 'pending',
+                score: match.score,
+                scheduledDate: match.scheduledDate
+              }))
+            }))}
             currentRound={currentTournament.bracketData.currentRound}
             totalRounds={currentTournament.bracketData.totalRounds}
             format={format}

@@ -65,6 +65,7 @@ class BracketGenerator {
 
       for (let i = 0; i < matchesInRound; i++) {
         const match = {
+          matchId: `match-${matchNumber}`,
           matchNumber: matchNumber++,
           player1: currentRoundParticipants[i * 2] || null,
           player2: currentRoundParticipants[i * 2 + 1] || null,
@@ -130,6 +131,7 @@ class BracketGenerator {
 
       for (let i = 0; i < matchesInRound; i++) {
         const match = {
+          matchId: `losers-match-${losersMatchNumber}`,
           matchNumber: losersMatchNumber++,
           player1: losersParticipants[i * 2] || null,
           player2: losersParticipants[i * 2 + 1] || null,
@@ -186,6 +188,7 @@ class BracketGenerator {
         // Avoid duplicate matches
         if (player1Index !== player2Index) {
           const match = {
+            matchId: `round-robin-${matchNumber}`,
             matchNumber: matchNumber++,
             player1: participants[player1Index],
             player2: participants[player2Index],
@@ -254,6 +257,7 @@ class BracketGenerator {
 
           if (!hasPlayedBefore) {
             matches.push({
+              matchId: `swiss-${matchNumber}`,
               player1: currentStandings[i].player,
               player2: currentStandings[j].player,
               matchNumber: matchNumber++,
@@ -306,6 +310,7 @@ class BracketGenerator {
 
         if (matchParticipants.length > 1) {
           const matchData = {
+            matchId: `free-for-all-${matchNumber}`,
             matchNumber: matchNumber++,
             players: matchParticipants,
             winners: [],
