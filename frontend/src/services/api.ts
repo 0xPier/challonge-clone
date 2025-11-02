@@ -185,6 +185,53 @@ export const userAPI = {
   },
 };
 
+// Match API
+export const matchAPI = {
+  getMatch: async (matchId: string) => {
+    const response = await api.get(`/matches/${matchId}`);
+    return response.data;
+  },
+
+  updateMatchResult: async (matchId: string, data: {
+    winnerId: string;
+    score?: {
+      player1: number;
+      player2: number;
+    };
+    notes?: string;
+  }) => {
+    const response = await api.put(`/matches/${matchId}/result`, data);
+    return response.data;
+  },
+
+  startMatch: async (matchId: string) => {
+    const response = await api.post(`/matches/${matchId}/start`);
+    return response.data;
+  },
+
+  disputeMatch: async (matchId: string, reason: string) => {
+    const response = await api.post(`/matches/${matchId}/dispute`, { reason });
+    return response.data;
+  },
+
+  getTournamentMatches: async (tournamentId: string, params?: {
+    round?: number;
+    status?: string;
+  }) => {
+    const response = await api.get(`/matches/tournament/${tournamentId}`, { params });
+    return response.data;
+  },
+
+  getUserMatches: async (userId: string, params?: {
+    status?: string;
+    limit?: number;
+    skip?: number;
+  }) => {
+    const response = await api.get(`/matches/user/${userId}`, { params });
+    return response.data;
+  },
+};
+
 // League API
 export const leagueAPI = {
   getLeagues: async (params?: {

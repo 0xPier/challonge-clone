@@ -1,4 +1,9 @@
 require('dotenv').config();
+
+// Validate environment variables before starting
+const { validateEnv } = require('./utils/validateEnv');
+validateEnv();
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -15,11 +20,15 @@ require('./utils/passport');
 // Import Redis
 const { initRedis } = require('./utils/redis');
 
+// Import sanitization
+const { applySanitization } = require('./middleware/sanitize');
+
 // Import routes
 const authRoutes = require('./routes/auth');
 const tournamentRoutes = require('./routes/tournaments');
 const userRoutes = require('./routes/users');
 const adminRoutes = require('./routes/admin');
+const matchRoutes = require('./routes/matches');
 const { errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
@@ -42,6 +51,10 @@ const limiter = rateLimit({
 
 // Middleware
 app.use(helmet());
+
+// Apply input sanitization
+applySanitization(app);
+
 app.use(cors({
   origin: function (origin, callback) {
     const allowedOrigins = [
@@ -113,6 +126,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/tournaments', tournamentRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/matches', matchRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

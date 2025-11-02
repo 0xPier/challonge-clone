@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Trophy, Save, User } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { matchAPI } from '../../services/api';
 
 interface Match {
   matchId: string;
@@ -55,14 +56,19 @@ const MatchModal: React.FC<MatchModalProps> = ({
 
     setSaving(true);
     try {
-      // TODO: Call API to update match result
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulated API call
+      await matchAPI.updateMatchResult(match.matchId, {
+        winnerId: selectedWinner,
+        score: {
+          player1: player1Score,
+          player2: player2Score
+        }
+      });
 
       toast.success('Match result updated successfully!');
       onUpdate?.();
       onClose();
     } catch (error: any) {
-      toast.error(error.message || 'Failed to update match');
+      toast.error(error?.response?.data?.error || error.message || 'Failed to update match');
     } finally {
       setSaving(false);
     }

@@ -3,7 +3,8 @@ const { body, validationResult } = require('express-validator');
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { authLimiter, authenticate } = require('../middleware/auth');
+const { authenticate } = require('../middleware/auth');
+const { authLimiter, registrationLimiter, passwordResetLimiter } = require('../middleware/rateLimiter');
 
 const router = express.Router();
 
@@ -44,7 +45,7 @@ const generateToken = (userId) => {
 // @route   POST /api/auth/register
 // @desc    Register a new user
 // @access  Public
-router.post('/register', authLimiter, registerValidation, async (req, res) => {
+router.post('/register', registrationLimiter, registerValidation, async (req, res) => {
   try {
     // Check for validation errors
     const errors = validationResult(req);
@@ -327,7 +328,7 @@ router.post('/change-password',
 // @desc    Request password reset
 // @access  Public
 router.post('/forgot-password',
-  authLimiter,
+  passwordResetLimiter,
   [
     body('email')
       .isEmail()
@@ -389,7 +390,7 @@ router.post('/forgot-password',
 // @desc    Reset password with token
 // @access  Public
 router.post('/reset-password',
-  authLimiter,
+  passwordResetLimiter,
   [
     body('token')
       .notEmpty()
