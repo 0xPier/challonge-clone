@@ -1,0 +1,59 @@
+version: '3.9'
+
+services:
+  mongo:
+    image: mongo:6
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 5001
+      MONGODB_URI: mongodb://mongo:27017/challonge-clone
+      JWT_SECRET: change-me-in-prod
+      FRONTEND_URL: http://localhost:3000
+      BACKEND_URL: http://localhost:5001
+      REDIS_URL: redis://redis:6379
+      MAX_FILE_SIZE: 5242880
+      UPLOAD_DIR: /app/uploads
+      ALLOWED_FILE_TYPES: image/jpeg,image/png,image/gif,image/webp
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_CALLBACK_URL: http://localhost:5001/api/auth/google/callback
+    depends_on:
+      - mongo
+      - redis
+    ports:
+      - "5001:5001"
+    volumes:
+      - upload_data:/app/uploads
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        REACT_APP_API_URL: http://localhost:5001/api
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+
+volumes:
+  mongo_data:
+  redis_data:
+  upload_data:

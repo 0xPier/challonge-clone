@@ -4,8 +4,9 @@
 
 The application is a single-page application (SPA) built with React. It follows a component-based architecture, with a clear separation of concerns between UI components, services, and state management.
 
-- **Frontend:** The frontend is built with React and TypeScript. It is responsible for rendering the UI and handling user interactions.
-- **Backend:** The backend is a Node.js application that provides a RESTful API for the frontend. It is responsible for handling business logic and interacting with the database.
+- **Frontend:** React + TypeScript, served by a CRA dev server in development and by nginx in production (built via multi-stage Dockerfile).
+- **Backend:** Node.js/Express REST API backed by MongoDB, shipped via a slim runtime Docker image.
+- **Infrastructure:** Docker Compose orchestrates MongoDB, backend, and frontend with separate files for dev (`docker-compose.dev.yml`) and prod (`docker-compose.yml`).
 
 ## Key Technical Decisions
 
@@ -18,3 +19,4 @@ The application is a single-page application (SPA) built with React. It follows 
 - **Container/Presentational Components:** This pattern is used to separate the logic of a component from its presentation.
 - **Hooks:** React Hooks are used to manage component state and side effects.
 - **Responsive Design:** The application is designed to be responsive, with a mobile-first approach.
+- **Multi-stage Docker Builds:** Separate build/runtime stages minimize production images and expose optional dev targets.

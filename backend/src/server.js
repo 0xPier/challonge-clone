@@ -7,9 +7,13 @@ const rateLimit = require('express-rate-limit');
 const passport = require('passport');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
+const path = require('path');
 
 // Import passport configuration
 require('./utils/passport');
+
+// Import Redis
+const { initRedis } = require('./utils/redis');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -63,6 +67,16 @@ app.use(cors({
 app.use(limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Initialize Redis
+initRedis().catch(err => {
+  console.error('Redis initialization failed:', err);
+  // Continue without Redis
+});
+
+// Serve static files (uploads)
+const uploadDir = process.env.UPLOAD_DIR || 'uploads';
+app.use('/uploads', express.static(path.join(__dirname, '..', uploadDir)));
 
 // Database connection
 const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/challonge-clone';

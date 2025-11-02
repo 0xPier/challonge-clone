@@ -1,4 +1,56 @@
+const mongoose = require('mongoose');
 const Match = require('../models/Match');
+
+const isValidObjectId = (value) => {
+  if (!value) {
+    return false;
+  }
+
+  if (value instanceof mongoose.Types.ObjectId) {
+    return true;
+  }
+
+  try {
+    return mongoose.Types.ObjectId.isValid(String(value));
+  } catch (error) {
+    return false;
+  }
+};
+
+const resolveParticipantId = (participant) => {
+  if (!participant) {
+    return null;
+  }
+
+  if (participant instanceof mongoose.Types.ObjectId) {
+    return participant;
+  }
+
+  if (typeof participant === 'string') {
+    return isValidObjectId(participant) ? participant : null;
+  }
+
+  if (participant.user) {
+    return resolveParticipantId(participant.user);
+  }
+
+  if (participant._id) {
+    return resolveParticipantId(participant._id);
+  }
+
+  return null;
+};
+
+const buildScore = (score) => {
+  if (!score || typeof score !== 'object') {
+    return { player1: 0, player2: 0 };
+  }
+
+  const player1 = typeof score.player1 === 'number' ? score.player1 : 0;
+  const player2 = typeof score.player2 === 'number' ? score.player2 : 0;
+
+  return { player1, player2 };
+};
 
 /**
  * Tournament Bracket Generation Service
@@ -348,45 +400,113 @@ class BracketGenerator {
     try {
       const createdMatches = [];
 
-      for (const round of bracketData.rounds) {
-        for (const matchData of round.matches) {
-          const match = new Match({
-            tournament: tournament._id,
-            round: round.roundNumber,
-            matchNumber: matchData.matchNumber,
-            players: [
-              matchData.player1 ? { user: matchData.player1.user || matchData.player1, seed: matchData.player1.seed } : null,
-              matchData.player2 ? { user: matchData.player2.user || matchData.player2, seed: matchData.player2.seed } : null
-            ].filter(Boolean),
-            status: matchData.status || 'scheduled',
-            format: tournament.format === 'free-for-all' ? 'custom' : 'single-game',
-            createdBy: tournament.organizer
-          });
+      const rounds = Array.isArray(bracketData?.rounds) ? bracketData.rounds : [];
+      const sanitizedRounds = rounds.map((round, index) => ({
+        roundNumber: round.roundNumber || index + 1,
+        matches: [],
+        isComplete: Boolean(round.isComplete)
+      }));
 
+      for (let roundIndex = 0; roundIndex < rounds.length; roundIndex += 1) {
+        const round = rounds[roundIndex];
+        const sanitizedRound = sanitizedRounds[roundIndex];
+        const matches = Array.isArray(round.matches) ? round.matches : [];
+
+        for (let matchIndex = 0; matchIndex < matches.length; matchIndex += 1) {
+          const matchData = matches[matchIndex];
+
+          const playersPayload = [];
+
+          if (Array.isArray(matchData.players) && matchData.players.length) {
+            matchData.players.forEach((participant) => {
+              const userId = resolveParticipantId(participant?.user || participant);
+              if (userId) {
+                playersPayload.push({
+                  user: userId,
+                  seed: participant?.seed ?? null
+                });
+              }
+            });
+          } else {
+            const player1Id = resolveParticipantId(matchData.player1);
+            const player2Id = resolveParticipantId(matchData.player2);
+
+            if (player1Id) {
+              playersPayload.push({
+                user: player1Id,
+                seed: matchData.player1?.seed ?? null
+              });
+            }
+
+            if (player2Id) {
+              playersPayload.push({
+                user: player2Id,
+                seed: matchData.player2?.seed ?? null
+              });
+            }
+          }
+
+          const rawStatus = matchData.status;
+          const bracketStatus = rawStatus === 'bye'
+            ? 'bye'
+            : (['pending', 'in-progress', 'completed'].includes(rawStatus) ? rawStatus : 'pending');
+
+          const matchStatus = bracketStatus === 'bye'
+            ? 'bye'
+            : (['in-progress', 'completed', 'cancelled'].includes(rawStatus) ? rawStatus : 'scheduled');
+
+          const matchPayload = {
+            tournament: tournament._id,
+            round: sanitizedRound.roundNumber,
+            matchNumber: matchData.matchNumber || matchIndex + 1,
+            players: playersPayload,
+            status: matchStatus,
+            format: matchData.format || (tournament.format === 'free-for-all' ? 'custom' : 'single-game'),
+            createdBy: tournament.organizer
+          };
+
+          if (matchData.scheduledDate) {
+            matchPayload.scheduledDate = matchData.scheduledDate;
+          }
+
+          if (isValidObjectId(matchData.matchId)) {
+            matchPayload._id = matchData.matchId;
+          }
+
+          if (matchStatus === 'bye' && playersPayload.length === 1) {
+            matchPayload.winner = playersPayload[0].user;
+          }
+
+          const match = new Match(matchPayload);
           await match.save();
           createdMatches.push(match);
 
-          // Update tournament bracket data
-          if (!tournament.bracketData.rounds) {
-            tournament.bracketData.rounds = [];
-          }
-
-          const tournamentRound = tournament.bracketData.rounds.find(r => r.roundNumber === round.roundNumber);
-          if (tournamentRound) {
-            tournamentRound.matches.push({
-              matchId: match._id,
-              player1: matchData.player1?._id || matchData.player1,
-              player2: matchData.player2?._id || matchData.player2,
-              status: match.status,
-              winner: match.winner
-            });
-          }
+          sanitizedRound.matches.push({
+            matchId: match._id,
+            player1: resolveParticipantId(matchData.player1),
+            player2: resolveParticipantId(matchData.player2),
+            status: bracketStatus,
+            winner: matchPayload.winner || resolveParticipantId(matchData.winner),
+            score: buildScore(matchData.score),
+            scheduledDate: matchData.scheduledDate || null,
+            completedDate: matchData.completedDate || null
+          });
         }
       }
 
-      // Update tournament stats
-      tournament.bracketData.currentRound = 1;
-      tournament.bracketData.totalRounds = bracketData.totalRounds;
+      tournament.bracketData = {
+        rounds: sanitizedRounds,
+        currentRound: bracketData.currentRound || 1,
+        totalRounds: bracketData.totalRounds || sanitizedRounds.length,
+        format: bracketData.format || tournament.format
+      };
+
+      tournament.markModified('bracketData');
+
+      if (!tournament.stats) {
+        tournament.stats = {};
+      }
+
       tournament.stats.totalMatches = createdMatches.length;
 
       return createdMatches;

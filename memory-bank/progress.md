@@ -2,27 +2,30 @@
 
 ## What Works
 
-- User authentication (registration and login).
-- Basic routing and page structure.
-- The main layout is applied to most pages.
+- User auth (register/login), profile basics, and Redux-driven layout.
+- Tournament creation, approval, and start flows, including the sanitized bracket generation logic.
+- Admin dashboard actions (approve/reject/start/add/remove/delete) via the REST API.
+- Dockerized development and production stacks with documented usage.
 
-## What's Left to Build
+## What's Left to Build / Verify
 
-- A fully responsive and functional UI.
-- The tournament creation and management features.
-- The tournament bracket visualization.
-- The leaderboard and user profile pages.
+- Full regression pass of admin endpoints (script + manual) inside the Docker stack.
+- Responsive layout QA across breakpoints to ensure Navbar/Sidebar still behave.
+- Production hardening: real secrets, Mongo auth/backups, logging/monitoring.
+- Optional enhancements (real-time Socket.IO, OAuth) remain out of scope for now.
 
 ## Current Status
 
-The project is currently in the early stages of development. The main focus is on fixing the responsive layout issues before moving on to implementing the core features.
+Feature work is largely complete; focus has shifted to validation and deployment readiness. Docker assets and docs are in place, but no tests have been executed in this environment yet.
 
-## Known Issues
+## Known Issues / Risks
 
-- The `Navbar` and `Sidebar` components are not rendering correctly on different screen sizes.
-- The mobile menu is not functional.
+- Admin flow changes rely on new bracket logic—needs automated coverage.
+- Placeholder JWT secret and open Mongo instance in compose files are unsafe for real deployments.
+- Responsive regressions are possible and should be checked before launch.
 
 ## Evolution of Project Decisions
 
-- The initial approach to the responsive layout was incorrect and is being refactored.
-- The `isMenuOpen` state has been centralized in the `Layout.tsx` component to ensure a single source of truth.
+- Moved from ad-hoc local setup to dual Docker workflows (dev vs prod) for consistency.
+- Hardened bracket generation after identifying admin start errors caused by invalid participant payloads.
+- Deployment readiness now shares priority with UI polish.

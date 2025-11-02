@@ -98,7 +98,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isMenuOpen, onClose }) => {
               Profile
             </NavLink>
           </li>
-          {user?.role === 'admin' && (
+          {(user?.role === 'admin' || user?.role === 'superuser') && (
             <li>
               <NavLink
                 to="/admin"

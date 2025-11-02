@@ -78,6 +78,51 @@ npm start
 Frontend: http://localhost:3000
 Backend API base: http://localhost:5001/api
 
+### Dockerized stack
+
+Prefer containers? Two Compose files live at the repo root so you can choose a
+workflow:
+
+| File | Purpose |
+| --- | --- |
+| `docker-compose.dev.yml` | Developer-friendly stack with live React dev server |
+| `docker-compose.yml` | Production-style stack (nginx-served frontend + optimized Node backend) |
+
+Prerequisites
+- Docker Desktop (or Docker Engine) with Docker Compose v2
+
+**Development stack** (hot reload, helpful during local builds):
+```bash
+docker compose -f docker-compose.dev.yml up --build
+```
+
+**Production stack** (static build + nginx):
+```bash
+docker compose up --build
+```
+
+On the first run both commands install dependencies in each service; subsequent
+runs can omit `--build` unless you change dependencies or environment build
+args.
+
+Seed the admin account once the containers are running (either stack):
+```bash
+docker compose exec backend npm run seed
+# or, for the dev stack
+docker compose -f docker-compose.dev.yml exec backend npm run seed
+```
+
+Default endpoints when using the production stack:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5001/api
+- MongoDB (development only): mongodb://localhost:27017
+
+Update secrets and URLs inside the respective compose file before deploying. For
+the production build you can override the frontend API target at build time:
+```bash
+docker compose build --build-arg REACT_APP_API_URL=https://your-domain.com/api frontend
+```
+
 **Default Admin Login:**
 - Email: `admin@challonge.local`
 - Password: `admin123`

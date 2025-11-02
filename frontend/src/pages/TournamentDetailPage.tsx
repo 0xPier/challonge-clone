@@ -1,17 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { CalendarDays, Users, Tag, Settings2, Trophy, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
+import { CalendarDays, Users, Tag, Settings2, Trophy, ArrowLeft, ShieldCheck, Play, UserPlus, UserMinus, Edit, Trash2 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { clearCurrentTournament, fetchTournament, registerForTournament } from '../store/slices/tournamentSlice';
 import TournamentCard from '../components/Tournament/TournamentCard';
 import BracketView from '../components/Tournament/BracketView';
+import EditTournamentModal from '../components/Tournament/EditTournamentModal';
 import toast from 'react-hot-toast';
+import api from '../services/api';
 
 const TournamentDetailPage: React.FC = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { currentTournament, tournaments, loading, error } = useAppSelector((state) => state.tournaments);
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -32,6 +36,64 @@ const TournamentDetailPage: React.FC = () => {
       toast.error(registerError || 'Unable to register at this time.');
     }
   };
+
+  const handleStartEarly = async () => {
+    if (!currentTournament || !id) return;
+    if (!window.confirm('Are you sure you want to start this tournament early?')) return;
+
+    try {
+      await api.post(`/admin/tournaments/${id}/start-early`);
+      toast.success('Tournament started successfully');
+      dispatch(fetchTournament(id));
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to start tournament');
+    }
+  };
+
+  const handleAddParticipant = async () => {
+    if (!currentTournament || !id) return;
+    const userId = prompt('Enter User ID to add:');
+    if (!userId) return;
+
+    try {
+      await api.post(`/admin/tournaments/${id}/participants/add`, { userId });
+      toast.success('Participant added successfully');
+      dispatch(fetchTournament(id));
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to add participant');
+    }
+  };
+
+  const handleRemoveParticipant = async () => {
+    if (!currentTournament || !id) return;
+    const userId = prompt('Enter User ID to remove:');
+    if (!userId) return;
+
+    try {
+      await api.delete(`/admin/tournaments/${id}/participants/remove`, {
+        data: { userId }
+      });
+      toast.success('Participant removed successfully');
+      dispatch(fetchTournament(id));
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to remove participant');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!currentTournament || !id) return;
+    if (!window.confirm('Are you sure you want to delete this tournament? This action cannot be undone.')) return;
+
+    try {
+      await api.delete(`/admin/tournaments/${id}`);
+      toast.success('Tournament deleted successfully');
+      navigate('/admin');
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to delete tournament');
+    }
+  };
+
+  const isAdmin = user?.role === 'admin' || user?.role === 'superuser';
 
   if (loading && !currentTournament) {
     return (
@@ -165,6 +227,55 @@ const TournamentDetailPage: React.FC = () => {
         </div>
       </section>
 
+      {/* Admin Controls */}
+      {isAdmin && (
+        <section className="rounded-3xl border border-yellow-400/30 bg-yellow-500/10 p-6 shadow-subtle">
+          <div className="flex items-center gap-3 mb-4">
+            <ShieldCheck className="h-6 w-6 text-yellow-400" />
+            <h2 className="text-xl font-heading font-semibold text-white">Admin Controls</h2>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {status !== 'in-progress' && status !== 'completed' && status !== 'cancelled' && currentParticipants >= 2 && (
+              <button
+                onClick={handleStartEarly}
+                className="btn-primary flex items-center gap-2"
+              >
+                <Play className="h-4 w-4" />
+                Start Early
+              </button>
+            )}
+            <button
+              onClick={handleAddParticipant}
+              className="btn-secondary flex items-center gap-2 text-blue-400 hover:bg-blue-500/10"
+            >
+              <UserPlus className="h-4 w-4" />
+              Add Participant
+            </button>
+            <button
+              onClick={handleRemoveParticipant}
+              className="btn-secondary flex items-center gap-2 text-orange-400 hover:bg-orange-500/10"
+            >
+              <UserMinus className="h-4 w-4" />
+              Remove Participant
+            </button>
+            <button
+              onClick={() => setIsEditModalOpen(true)}
+              className="btn-secondary flex items-center gap-2 text-green-400 hover:bg-green-500/10"
+            >
+              <Edit className="h-4 w-4" />
+              Edit Tournament
+            </button>
+            <button
+              onClick={handleDelete}
+              className="btn-secondary flex items-center gap-2 text-red-400 hover:bg-red-500/10"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete
+            </button>
+          </div>
+        </section>
+      )}
+
       {/* Bracket section - show if tournament has started */}
       {currentTournament.bracketData && currentTournament.bracketData.rounds && currentTournament.bracketData.rounds.length > 0 && (
         <section className="card border-white/10 bg-indigo-950/80 p-8">
@@ -184,7 +295,7 @@ const TournamentDetailPage: React.FC = () => {
                   avatar: match.player2.avatar
                 },
                 winner: match.winner,
-                status: match.status || 'pending',
+                status: match.status || 'scheduled',
                 score: match.score,
                 scheduledDate: match.scheduledDate
               }))
@@ -265,6 +376,20 @@ const TournamentDetailPage: React.FC = () => {
           </div>
         </aside>
       </section>
+
+      {/* Edit Tournament Modal */}
+      {currentTournament && (
+        <EditTournamentModal
+          tournament={currentTournament}
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onUpdate={() => {
+            if (id) {
+              dispatch(fetchTournament(id));
+            }
+          }}
+        />
+      )}
     </div>
   );
 };
